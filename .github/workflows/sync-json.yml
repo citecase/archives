@@ -1,0 +1,39 @@
+name: Sync Markdown to JSON
+
+on:
+  push:
+    paths:
+      - '2026.md'          # Only runs when the MD file changes
+      - 'converter.py'     # Or when the script itself is updated
+  workflow_dispatch:       # Allows you to run this manually from the Actions tab
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write      # Required to push the JSON back to the repo
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/checkout@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests
+
+      - name: Run Converter
+        run: python converter.py
+
+      - name: Commit and Push JSON
+        run: |
+          git config --global user.name "CiteCase Bot"
+          git config --global user.email "bot@citecase.com"
+          git add 2026.json
+          # Only commit if there are actually changes to the JSON
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Auto-sync: Update 2026.json from markdown" && git push)
